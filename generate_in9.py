@@ -12,12 +12,14 @@ SAM 3 기반 IN-9 Training Dataset 생성 스크립트
   - BG 선택: 필터링 통과한 이미지에서만 선택 (원본과 동일)
   - Phase 구조: Phase 1 (필터+세그먼트+비합성 variant) → Phase 2 (mixed 합성)
 
-원본과 다른 점:
+원본과 다른 점 (총 18개, 상세: 논문_코드_대조.md):
   - GrabCut → SAM 3 (segmentation method)
   - val 하드코딩 → --split train/val 지원
   - 단일 synset → 9 superclass 전체 자동 처리
   - mixed_rand, mixed_next, in9l 추가 (원본 미구현)
   - fg_mask를 .npy로 저장하여 Phase 2에서 재사용 (원본은 Phase 2에서 재세그먼트)
+  - BG 선택 범위: 같은 synset → 같은 superclass (논문 정의 "same class" = superclass)
+  - FRACTION check: 항상 test_transform(224 crop) 사용 (원본과 동일, split 무관)
 
 사용법:
     python generate_in9.py \\
@@ -428,12 +430,12 @@ def is_good_image(img_pil, ann_width, ann_height, bboxes, split):
     draw = ImageDraw.Draw(mask)
     draw.rectangle([xmin, ymin, xmax, ymax], fill="white")
 
-    # FRACTION check (원본 코드 line 155-171)
-    crop_size = TEST_CROP if split == "val" else TRAIN_CROP
-    xform = test_transform if split == "val" else standard_transform
-    post_crop = xform(mask)
+    # FRACTION check (원본 코드 line 167-171)
+    # 원본은 항상 test_transform(224 crop)을 사용.
+    # 이유: 최종 평가 시 224 crop 기준으로 bbox 비율을 체크하므로 split 무관.
+    post_crop = test_transform(mask)
     num_masked_pixels = np.sum(np.array(post_crop)) // (255 * 3)
-    area_ratio = num_masked_pixels / (crop_size ** 2)
+    area_ratio = num_masked_pixels / (TEST_CROP ** 2)
     if area_ratio > FRACTION:
         return 5
 
