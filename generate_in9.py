@@ -155,8 +155,8 @@ class SAM3Segmentor:
 
             model = build_sam3_image_model(
                 checkpoint_path=checkpoint,
+                device=device,
             )
-            model = model.to(device)
             self.processor = Sam3Processor(model)
             self.api_version = "sam3"
             logger.info("SAM 3 model loaded (Sam3Processor API)")
