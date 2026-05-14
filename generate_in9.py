@@ -154,8 +154,7 @@ class SAM3Segmentor:
             from sam3.model.sam3_image_processor import Sam3Processor
 
             model = build_sam3_image_model(
-                checkpoint=checkpoint,
-                model_cfg=model_cfg,
+                checkpoint_path=checkpoint,
             )
             model = model.to(device)
             self.processor = Sam3Processor(model)
