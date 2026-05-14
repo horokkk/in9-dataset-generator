@@ -192,7 +192,6 @@ class SAM3Segmentor:
         import torch
 
         pil_img = Image.fromarray(img_np)
-        inference_state = self.processor.set_image(pil_img)
 
         h, w = img_np.shape[:2]
         # add_geometric_prompt: normalized [cx, cy, w, h]
@@ -202,13 +201,15 @@ class SAM3Segmentor:
         bh = (ymax - ymin) / h
 
         try:
-            output = self.processor.add_geometric_prompt(
-                box=[cx, cy, bw, bh],
-                label=1,
-                state=inference_state,
-            )
-            masks = output["masks"]   # (N, H, W) or (N, 1, H, W)
-            scores = output["scores"]  # (N,)
+            with torch.autocast(self.device, dtype=torch.bfloat16):
+                inference_state = self.processor.set_image(pil_img)
+                output = self.processor.add_geometric_prompt(
+                    box=[cx, cy, bw, bh],
+                    label=True,
+                    state=inference_state,
+                )
+            masks = output["masks"]   # (1, 1, H, W) bool
+            scores = output["scores"]  # (1,)
 
             if masks is None or len(masks) == 0:
                 return None, False
