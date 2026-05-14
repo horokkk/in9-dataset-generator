@@ -170,7 +170,7 @@ class SAM3Segmentor:
         from sam2.build_sam import build_sam2
         from sam2.sam2_image_predictor import SAM2ImagePredictor
 
-        model = build_sam2(model_cfg or "sam2_hiera_large", checkpoint)
+        model = build_sam2(model_cfg or "sam2_hiera_l", checkpoint)
         model = model.to(device)
         self.predictor = SAM2ImagePredictor(model)
         self.api_version = "sam2"
